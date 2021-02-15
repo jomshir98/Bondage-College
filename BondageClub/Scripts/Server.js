@@ -461,7 +461,7 @@ function ServerAppearanceLoadFromBundle(C, AssetFamily, Bundle, SourceMemberNumb
 	const FromOwner = C.Ownership != null && (SourceMemberNumber === C.Ownership.MemberNumber || FromSelf);
 	const LoverNumbers = CharacterGetLoversNumbers(C);
 	const FromLoversOrOwner = LoverNumbers.length > 0 && (LoverNumbers.includes(SourceMemberNumber) || FromOwner || FromSelf);
-	const DoValidate = C.ID === 0 && !FromSelf;
+	const DoValidate = C.ID === 0;
 
 	// Clears the appearance to begin
 	const Appearance = [];
@@ -474,7 +474,7 @@ function ServerAppearanceLoadFromBundle(C, AssetFamily, Bundle, SourceMemberNumb
 			} else {
 				if ((!FromOwner && InventoryOwnerOnlyItem(C.Appearance[A])) || (!FromLoversOrOwner && InventoryLoverOnlyItem(C.Appearance[A]))) {
 					// If the owner-locked item is sent back from a non-owner, we allow to change some properties and lock it back with the owner lock
-					if (!C.Appearance[A].Asset.OwnerOnly && !C.Appearance[A].Asset.LoverOnly)  {
+					if (!C.Appearance[A].Asset.OwnerOnly && !C.Appearance[A].Asset.LoverOnly) {
 						for (let B = 0; B < Bundle.length; B++) {
 							if ((C.Appearance[A].Asset.Name === Bundle[B].Name) && (C.Appearance[A].Asset.Group.Name === Bundle[B].Group) && (C.Appearance[A].Asset.Group.Family === AssetFamily)) {
 								ServerItemCopyProperty(C, C.Appearance[A], Bundle[B].Property);
@@ -504,7 +504,7 @@ function ServerAppearanceLoadFromBundle(C, AssetFamily, Bundle, SourceMemberNumb
 		const Blocked = InventoryIsPermissionBlocked(C, Bundle[A].Name, Bundle[A].Group, Type);
 		if ((Blocked || Limited) && OnlineGameAllowBlockItems()) {
 			// But don't skip them if we already are wearing it
-			if (!C.Appearance.some(item=>item.Asset.Name === Bundle[A].Name && item.Asset.Group.Name === Bundle[A].Group)) {
+			if (!C.Appearance.some(item => item.Asset.Name === Bundle[A].Name && item.Asset.Group.Name === Bundle[A].Group)) {
 				console.warn(`AppearanceBundle item ${Bundle[A].Group}:${Bundle[A].Name} skip: ${Blocked ? "Blocked" : "Limited"}`);
 				continue;
 			}
@@ -523,11 +523,13 @@ function ServerAppearanceLoadFromBundle(C, AssetFamily, Bundle, SourceMemberNumb
 						console.warn(`AppearanceBundle item ${Bundle[A].Group}:${Bundle[A].Name} skip: OwnerOnly not from owner`);
 						break;
 					}
+
 					// LoverOnly items can only get update if it comes from lover
 					if (Asset[I].LoverOnly && !FromLoversOrOwner) {
 						console.warn(`AppearanceBundle item ${Bundle[A].Group}:${Bundle[A].Name} skip: LoverOnly not from lover`);
 						break;
 					}
+
 					// Make sure we don't push an item that's disabled, coming from another player
 					if (!Asset[I].Enable && !Asset[I].OwnerOnly && !Asset[I].LoverOnly) {
 						console.warn(`AppearanceBundle item ${Bundle[A].Group}:${Bundle[A].Name} skip: Disabled item`);
