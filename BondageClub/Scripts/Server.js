@@ -438,29 +438,36 @@ function ServerDeleteLock(Property) {
  * @param {Character} C - Character for which to load the appearance
  * @param {string} AssetFamily - Family of assets used for the appearance array
  * @param {AppearanceBundle} Bundle - Bundled appearance
- * @param {number} SourceMemberNumber - Member number of the user who triggered the change
+ * @param {number|null} [SourceMemberNumber] - Member number of the user who triggered the change
  * @returns {void} - Nothing
  */
-function ServerAppearanceLoadFromBundle(C, AssetFamily, Bundle, SourceMemberNumber) {
+function ServerAppearanceLoadFromBundle(C, AssetFamily, Bundle, SourceMemberNumber = null) {
+	if (!Array.isArray(Bundle)) {
+		console.error("AppearanceBundle is not array");
+		return;
+	}
 
 	// Removes any invalid data from the appearance bundle
-	for (let B = 0; B < Bundle.length; B++)
-		if ((Bundle[B] == null) || (typeof Bundle[B] !== "object") || (Bundle[B].Name == null) || (typeof Bundle[B].Name != "string") || (Bundle[B].Name == null) || (typeof Bundle[B].Name != "string")) {
+	for (let B = 0; B < Bundle.length; B++) {
+		if ((Bundle[B] == null) || (typeof Bundle[B] !== "object") || (typeof Bundle[B].Name !== "string") || (typeof Bundle[B].Group !== "string")) {
+			console.warn("Removing invalid item from AppearanceBundle", Bundle[B]);
 			Bundle.splice(B, 1);
 			B--;
 		}
+	}
 
 	// We do not check if the load is from the Player
-	var FromSelf = (SourceMemberNumber != null) && (SourceMemberNumber == C.MemberNumber);
-	var FromOwner = (SourceMemberNumber != null) && (C.Ownership != null) && ((SourceMemberNumber == C.Ownership.MemberNumber) || FromSelf);
-	var LoverNumbers = CharacterGetLoversNumbers(C);
-	var FromLoversOrOwner = (SourceMemberNumber != null) && (LoverNumbers.length != 0) && (LoverNumbers.includes(SourceMemberNumber) || FromOwner);
+	const FromSelf = SourceMemberNumber == null || SourceMemberNumber === C.MemberNumber;
+	const FromOwner = C.Ownership != null && (SourceMemberNumber === C.Ownership.MemberNumber || FromSelf);
+	const LoverNumbers = CharacterGetLoversNumbers(C);
+	const FromLoversOrOwner = LoverNumbers.length > 0 && (LoverNumbers.includes(SourceMemberNumber) || FromOwner || FromSelf);
+	const DoValidate = C.ID === 0 && !FromSelf;
 
 	// Clears the appearance to begin
-	var Appearance = [];
+	const Appearance = [];
 
 	// Reapply any item that was equipped and isn't enable, same for owner locked items if the source member isn't the owner
-	if ((SourceMemberNumber != null) && (C.ID == 0))
+	if (DoValidate) {
 		for (let A = 0; A < C.Appearance.length; A++) {
 			if (!C.Appearance[A].Asset.Enable && !C.Appearance[A].Asset.OwnerOnly && !C.Appearance[A].Asset.LoverOnly) {
 				Appearance.push(C.Appearance[A]);
@@ -468,43 +475,68 @@ function ServerAppearanceLoadFromBundle(C, AssetFamily, Bundle, SourceMemberNumb
 				if ((!FromOwner && InventoryOwnerOnlyItem(C.Appearance[A])) || (!FromLoversOrOwner && InventoryLoverOnlyItem(C.Appearance[A]))) {
 					// If the owner-locked item is sent back from a non-owner, we allow to change some properties and lock it back with the owner lock
 					if (!C.Appearance[A].Asset.OwnerOnly && !C.Appearance[A].Asset.LoverOnly)  {
-						for (let B = 0; B < Bundle.length; B++)
-							if ((C.Appearance[A].Asset.Name == Bundle[B].Name) && (C.Appearance[A].Asset.Group.Name == Bundle[B].Group) && (C.Appearance[A].Asset.Group.Family == AssetFamily)) {
+						for (let B = 0; B < Bundle.length; B++) {
+							if ((C.Appearance[A].Asset.Name === Bundle[B].Name) && (C.Appearance[A].Asset.Group.Name === Bundle[B].Group) && (C.Appearance[A].Asset.Group.Family === AssetFamily)) {
 								ServerItemCopyProperty(C, C.Appearance[A], Bundle[B].Property);
 								break;
 							}
+						}
 					}
 					Appearance.push(C.Appearance[A]);
 				}
 			}
 		}
+	}
 
 	// For each appearance item to load
 	for (let A = 0; A < Bundle.length; A++) {
+		if (Bundle[A].Property !== undefined && typeof Bundle[A].Property !== "object" || Bundle[A].Property === null) {
+			delete Bundle[A].Property;
+			console.warn(`AppearanceBundle item ${Bundle[A].Group}:${Bundle[A].Name} Property not object`);
+		}
 
 		// Skip blocked items
-		const Type = typeof Bundle[A].Property === "object" ? Bundle[A].Property.Type : null;
-		const Limited = C.ID == 0 && InventoryIsPermissionLimited(C, Bundle[A].Name, Bundle[A].Group, Type) && (SourceMemberNumber != null) && SourceMemberNumber !== Player.MemberNumber && ((C.Ownership == null) || (C.Ownership.MemberNumber == null) || ((C.Ownership.MemberNumber != SourceMemberNumber))) && ((C.GetLoversNumbers().indexOf(SourceMemberNumber) < 0)) && ((C.ItemPermission > 3) || C.WhiteList.indexOf(SourceMemberNumber) < 0);
-		if ((InventoryIsPermissionBlocked(C, Bundle[A].Name, Bundle[A].Group, Type)  || Limited) && OnlineGameAllowBlockItems()) continue;
+		const Type = Bundle[A].Property ? Bundle[A].Property.Type : null;
+		const Limited = DoValidate &&
+			!FromLoversOrOwner &&
+			InventoryIsPermissionLimited(C, Bundle[A].Name, Bundle[A].Group, Type) &&
+			(C.ItemPermission > 3 || !C.WhiteList.includes(SourceMemberNumber));
+		const Blocked = InventoryIsPermissionBlocked(C, Bundle[A].Name, Bundle[A].Group, Type);
+		if ((Blocked || Limited) && OnlineGameAllowBlockItems()) {
+			// But don't skip them if we already are wearing it
+			if (!C.Appearance.some(item=>item.Asset.Name === Bundle[A].Name && item.Asset.Group.Name === Bundle[A].Group)) {
+				console.warn(`AppearanceBundle item ${Bundle[A].Group}:${Bundle[A].Name} skip: ${Blocked ? "Blocked" : "Limited"}`);
+				continue;
+			}
+		}
 
 		// Skip items if there's already an item in that slot
-		if (Appearance.find(item => item.Asset.Group.Family === AssetFamily && item.Asset.Group.Name === Bundle[A].Group)) continue;
+		if (Appearance.some(item => item.Asset.Group.Family === AssetFamily && item.Asset.Group.Name === Bundle[A].Group)) continue;
 
-		// Cycles in all assets to find the correct item to add (do not add )
-		for (let I = 0; I < Asset.length; I++)
-			if ((Asset[I].Name == Bundle[A].Name) && (Asset[I].Group.Name == Bundle[A].Group) && (Asset[I].Group.Family == AssetFamily)) {
+		// Cycles in all assets to find the correct item to add (do not add)
+		for (let I = 0; I < Asset.length; I++) {
+			if ((Asset[I].Name === Bundle[A].Name) && (Asset[I].Group.Name === Bundle[A].Group) && (Asset[I].Group.Family === AssetFamily)) {
 
-				// OwnerOnly items can only get update if it comes from owner
-				if (SourceMemberNumber != null && Asset[I].OwnerOnly && (C.ID == 0) && !FromOwner) break;
+				if (DoValidate) {
+					// OwnerOnly items can only get update if it comes from owner
+					if (Asset[I].OwnerOnly && !FromOwner) {
+						console.warn(`AppearanceBundle item ${Bundle[A].Group}:${Bundle[A].Name} skip: OwnerOnly not from owner`);
+						break;
+					}
+					// LoverOnly items can only get update if it comes from lover
+					if (Asset[I].LoverOnly && !FromLoversOrOwner) {
+						console.warn(`AppearanceBundle item ${Bundle[A].Group}:${Bundle[A].Name} skip: LoverOnly not from lover`);
+						break;
+					}
+					// Make sure we don't push an item that's disabled, coming from another player
+					if (!Asset[I].Enable && !Asset[I].OwnerOnly && !Asset[I].LoverOnly) {
+						console.warn(`AppearanceBundle item ${Bundle[A].Group}:${Bundle[A].Name} skip: Disabled item`);
+						break;
+					}
+				}
 
-				// LoverOnly items can only get update if it comes from lover
-				if (SourceMemberNumber != null && Asset[I].LoverOnly && (C.ID == 0) && !FromLoversOrOwner) break;
-
-				// Make sure we don't push an item that's disabled, coming from another player
-				if (!Asset[I].Enable && !Asset[I].OwnerOnly && !Asset[I].LoverOnly && (SourceMemberNumber != null) && (C.ID == 0)) break;
-
-				var ColorSchema = Asset[I].Group.ColorSchema;
-				var Color = Bundle[A].Color;
+				const ColorSchema = Asset[I].Group.ColorSchema;
+				let Color = Bundle[A].Color;
 				if (Array.isArray(Color)) {
 					if (Color.length > Asset[I].ColorableLayerCount) Color = Color.slice(0, Asset[I].ColorableLayerCount);
 					Color = Color.map(Col => ServerValidateColorAgainstSchema(Col, ColorSchema));
@@ -513,20 +545,28 @@ function ServerAppearanceLoadFromBundle(C, AssetFamily, Bundle, SourceMemberNumb
 				}
 
 				// Creates the item and colorize it
-				var NA = {
+				const NA = {
 					Asset: Asset[I],
 					Difficulty: parseInt((Bundle[A].Difficulty == null) ? 0 : Bundle[A].Difficulty),
 					Color,
 				};
 
 				// Sets the item properties and make sure a non-owner cannot add an owner lock
-				if (Bundle[A].Property != null) {
+				if (Bundle[A].Property) {
 					NA.Property = Bundle[A].Property;
 
-					// If a non-owner/lover has added an owner/lover-only lock, remove it
-					const Lock = InventoryGetLock(NA);
-					if (C.ID === 0 && !FromOwner && Lock && Lock.Asset.OwnerOnly) ServerDeleteLock(NA.Property);
-					if (C.ID === 0 && !FromLoversOrOwner && Lock && Lock.Asset.LoverOnly) ServerDeleteLock(NA.Property);
+					if (DoValidate) {
+						// If a non-owner/lover has added an owner/lover-only lock, remove it
+						const Lock = InventoryGetLock(NA);
+						if (!FromOwner && Lock && Lock.Asset.OwnerOnly) {
+							ServerDeleteLock(NA.Property);
+							console.warn(`AppearanceBundle item ${Bundle[A].Group}:${Bundle[A].Name} remove OwnerOnly lock: Not from owner`);
+						}
+						if (!FromLoversOrOwner && Lock && Lock.Asset.LoverOnly) {
+							ServerDeleteLock(NA.Property);
+							console.warn(`AppearanceBundle item ${Bundle[A].Group}:${Bundle[A].Name} remove LoverOnly lock: Not from lover`);
+						}
+					}
 
 					ServerValidateProperties(C, NA, { SourceMemberNumber: SourceMemberNumber, FromOwner: FromOwner, FromLoversOrOwner: FromLoversOrOwner });
 				}
@@ -536,15 +576,15 @@ function ServerAppearanceLoadFromBundle(C, AssetFamily, Bundle, SourceMemberNumb
 				break;
 
 			}
-
+		}
 	}
 
 	// Adds any critical appearance asset that could be missing, adds the default one
-	for (let G = 0; G < AssetGroup.length; G++)
+	for (let G = 0; G < AssetGroup.length; G++) {
 		if ((AssetGroup[G].Category == "Appearance") && !AssetGroup[G].AllowNone) {
 
 			// Check if we already have the item
-			var Found = false;
+			let Found = false;
 			for (let A = 0; A < Appearance.length; A++)
 				if (Appearance[A].Asset.Group.Name == AssetGroup[G].Name)
 					Found = true;
@@ -552,7 +592,7 @@ function ServerAppearanceLoadFromBundle(C, AssetFamily, Bundle, SourceMemberNumb
 			// Adds the missing appearance part, we copy the mirrored group if it is not found and it exists
 			if (!Found) {
 				if (AssetGroup[G].MirrorGroup) {
-					var MirroredAsset = null;
+					let MirroredAsset = null;
 					for (let A = 0; A < Appearance.length; A++)
 						if (Appearance[A].Asset.Group.Name == AssetGroup[G].MirrorGroup) {
 							for (let I = 0; I < Asset.length; I++)
@@ -569,15 +609,17 @@ function ServerAppearanceLoadFromBundle(C, AssetFamily, Bundle, SourceMemberNumb
 								break;
 							}
 					Appearance.push(MirroredAsset);
-				} else
-					for (let I = 0; I < Asset.length; I++)
+				} else {
+					for (let I = 0; I < Asset.length; I++) {
 						if (Asset[I].Group.Name == AssetGroup[G].Name) {
 							Appearance.push({ Asset: Asset[I], Color: Asset[I].Group.ColorSchema[0] });
 							break;
 						}
+					}
+				}
 			}
-
 		}
+	}
 	return Appearance;
 
 }
@@ -605,7 +647,7 @@ function ServerItemCopyProperty(C, Item, NewProperty) {
 	if (Item.Property.Password != null) NewProperty.Password = Item.Property.Password; else delete NewProperty.Password;
 	if (Item.Property.Hint != null) NewProperty.Hint = Item.Property.Hint; else delete NewProperty.Hint;
 	if (Item.Property.LockSet != null) NewProperty.LockSet = Item.Property.LockSet; else delete NewProperty.LockSet;
-	
+
 	if (Item.Property.LockPickSeed != null) NewProperty.LockPickSeed = Item.Property.LockPickSeed; else delete NewProperty.LockPickSeed;
 	Item.Property = NewProperty;
 	ServerValidateProperties(C, Item);
