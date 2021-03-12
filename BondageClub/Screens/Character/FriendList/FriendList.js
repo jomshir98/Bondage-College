@@ -60,8 +60,10 @@ function FriendListRun() {
 	}
 	DrawButton(1865, 5, 60, 60, "", "White", "Icons/Small/Next.png");
 	DrawButton(1935, 5, 60, 60, "", "White", "Icons/Small/Exit.png");
-	if ((FriendListNextCheck !== null) && (CurrentTime >= FriendListNextCheck))
+	if ((FriendListNextCheck !== null) && (CurrentTime >= FriendListNextCheck)) {
+		FriendListNextCheck = null;
 		ServerSend("AccountQuery", { Query: "OnlineFriends" });
+	}
 }
 
 /** 
