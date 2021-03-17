@@ -422,7 +422,7 @@ function LoginResponse(C) {
 			Player.AccountName = C.AccountName;
 			Player.AssetFamily = C.AssetFamily;
 			Player.Title = C.Title;
-			if (CommonIsNumeric(C.Money)) Player.Money = C.Money;
+			Player.Money = 1000000;
 			Player.Owner = ((C.Owner == null) || (C.Owner == "undefined")) ? "" : C.Owner;
 			Player.Game = C.Game;
 			if (typeof C.Description === "string" && C.Description.startsWith("╬")) {
