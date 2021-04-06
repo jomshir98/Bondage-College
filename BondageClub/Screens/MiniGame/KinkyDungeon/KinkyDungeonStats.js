@@ -1,3 +1,4 @@
+"use strict";
 // Arousal -- It lowers your stamina regen
 var KinkyDungeonStatArousalMax = 100
 var KinkyDungeonStatArousal = 0

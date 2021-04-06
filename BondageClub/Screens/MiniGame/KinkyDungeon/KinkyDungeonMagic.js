@@ -1,3 +1,4 @@
+"use strict";
 var KinkyDungeonManaCost = 10 // The base mana cost of a spell, multiplied by the spell's level
 
 
@@ -268,7 +269,7 @@ function KinkyDungeonWordWrap(str, maxWidth) {
 function KinkyDungeonTestWhite(x) {
     var white = new RegExp(/^\s$/);
     return white.test(x.charAt(0));
-};
+}
 
 function KinkyDungeonDrawMagic() {
 	DrawImageZoomCanvas("Screens/Minigame/KinkyDungeon/MagicBook.png", MainCanvas, 0, 0, 640, 483, canvasOffsetX, canvasOffsetY, 640*KinkyDungeonBookScale, 483*KinkyDungeonBookScale, false)

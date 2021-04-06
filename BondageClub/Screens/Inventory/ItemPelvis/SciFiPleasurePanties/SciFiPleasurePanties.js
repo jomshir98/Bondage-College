@@ -85,7 +85,7 @@ function InventoryItemPelvisSciFiPleasurePantiesClick() {
 			CharacterRefresh(C);
             if (CharacterGetCurrent().ID == 0) ServerPlayerAppearanceSync();
             if (CurrentScreen == "ChatRoom") ChatRoomCharacterItemUpdate(C, "ItemPelvis");
-			var Dictionary = [];
+			let Dictionary = [];
 			Dictionary.push({Tag: "DestinationCharacterName", Text: C.Name, MemberNumber: C.MemberNumber});
 			ChatRoomPublishCustomAction("SciFiPleasurePantiesAction" + (DialogFocusItem.Property.LockButt ? "LockButt" : "UnlockButt"), true, Dictionary);
 		}
@@ -96,7 +96,7 @@ function InventoryItemPelvisSciFiPleasurePantiesClick() {
 			CharacterRefresh(C);
 			if (CharacterGetCurrent().ID == 0) ServerPlayerAppearanceSync();
 			if (CurrentScreen == "ChatRoom") ChatRoomCharacterItemUpdate(C, "ItemPelvis");
-			var Dictionary = [];
+			let Dictionary = [];
 			Dictionary.push({Tag: "DestinationCharacterName", Text: C.Name, MemberNumber: C.MemberNumber});
 			ChatRoomPublishCustomAction("SciFiPleasurePantiesAction" + (DialogFocusItem.Property.LockCrotch ? "AddShield" : "RemoveShield"), true, Dictionary);
 		}
@@ -120,7 +120,7 @@ function InventoryItemPelvisSciFiPleasurePantiesLockOrgasm(OrgasmLock) {
             }
         }
 	}
-	 
+
 	CharacterLoadEffect(C);
     if (C.ID == 0) ServerPlayerAppearanceSync();
 

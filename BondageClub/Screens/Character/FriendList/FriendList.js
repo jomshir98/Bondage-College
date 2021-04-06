@@ -143,7 +143,7 @@ function FriendListShowBeep(i) {
 	if (beep) {
 		FriendListBeep(beep.MemberNumber, beep);
 	}
-};
+}
 
 /**
  * Handles the click events in the friend list. Clicks are propagated to this function from CommonClick()

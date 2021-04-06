@@ -1,3 +1,4 @@
+"use strict";
 var KinkyDungeonStruggleGroups = []
 var KinkyDungeonStruggleGroupsBase = [
 		"ItemHead",
@@ -55,7 +56,7 @@ function KinkyDungeonDrawGame() {
 				KinkyDungeonContext.fillRect(0, 0, KinkyDungeonCanvas.width, KinkyDungeonCanvas.height);
 				KinkyDungeonContext.fill()
 				// Draw the grid
-				var rows = KinkyDungeonGrid.split('\n')
+				let rows = KinkyDungeonGrid.split('\n')
 				for (let R = 0; R < KinkyDungeonGridHeightDisplay; R++)  {
 					for (let X = 0; X < KinkyDungeonGridWidthDisplay; X++)  {
 						var sprite = "Floor"
@@ -90,7 +91,7 @@ function KinkyDungeonDrawGame() {
 			KinkyDungeonDrawFight(canvasOffsetX, canvasOffsetY, CamX, CamY, KinkyDungeonGridSizeDisplay)
 			
 			// Draw fog of war
-			var rows = KinkyDungeonLightGrid.split('\n')
+			let rows = KinkyDungeonLightGrid.split('\n')
 			for (let R = 0; R < KinkyDungeonGridHeightDisplay; R++)  {
 				for (let X = 0; X < KinkyDungeonGridWidthDisplay; X++)  {
 					KinkyDungeonContext.beginPath();
@@ -195,19 +196,19 @@ function KinkyDungeonDrawGame() {
 		DrawButton(925, 925, 250, 60, TextGet("KinkyDungeonMagic"), "White", "", "");
 		
 		if (KinkyDungeonSpells[KinkyDungeonSpellChoices[0]]) {
-			var spell = KinkyDungeonSpells[KinkyDungeonSpellChoices[0]]
+			let spell = KinkyDungeonSpells[KinkyDungeonSpellChoices[0]]
 			DrawText(TextGet("KinkyDungeonSpell"+ spell.name), 1275, 835, color, "silver")
 			DrawText("(" + KinkyDungeonGetCost(spell.level) + ")", 1275, 870, color, "silver")
 			DrawButton(1230, 895, 90, 90, "", "White", "Screens/Minigame/KinkyDungeon/Spell1.png", "");
 		}
 		if (KinkyDungeonSpells[KinkyDungeonSpellChoices[1]]) {
-			var spell = KinkyDungeonSpells[KinkyDungeonSpellChoices[1]]
+			let spell = KinkyDungeonSpells[KinkyDungeonSpellChoices[1]]
 			DrawText(TextGet("KinkyDungeonSpell"+ spell.name), 1525, 835, color, "silver")
 			DrawText("(" + KinkyDungeonGetCost(spell.level) + ")", 1525, 870, color, "silver")
 			DrawButton(1480, 895, 90, 90, "", "White", "Screens/Minigame/KinkyDungeon/Spell2.png", "");
 		}
 		if (KinkyDungeonSpells[KinkyDungeonSpellChoices[2]]) {
-			var spell = KinkyDungeonSpells[KinkyDungeonSpellChoices[2]]
+			let spell = KinkyDungeonSpells[KinkyDungeonSpellChoices[2]]
 			DrawText(TextGet("KinkyDungeonSpell"+ spell.name), 1775, 835, color, "silver")
 			DrawText("(" + KinkyDungeonGetCost(spell.level) + ")", 1775, 870, color, "silver")
 			DrawButton(1730, 895, 90, 90, "", "White", "Screens/Minigame/KinkyDungeon/Spell3.png", "");

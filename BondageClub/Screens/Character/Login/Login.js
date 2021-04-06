@@ -5,10 +5,10 @@ var LoginCredits = null;
 var LoginCreditsPosition = 0;
 var LoginThankYou = "";
 var LoginThankYouList = ["Abby", "Anna", "Aylea", "BlueEyedCat", "BlueWinter", "Brian", "Bryce", "Christian", "Dini", "EliseBlackthorn",
-						 "Epona", "Escurse", "FanRunner", "Fotari", "Greendragon", "KamiKaze", "KBgamer", "Kimuriel", "Longwave", "Michal", 
-						 "Michel", "Mike", "Mindtie", "Misa", "Mzklopyu", "Nick", "Nightcore", "Overlord", "Rashiash", "Ray", 
-						 "Rika", "Robin", "Rutherford", "Ryner", "Samuel", "SeraDenoir", "Shadow", "Somononon", "Stephanie", "Tam", 
-						 "TopHat", "Trent", "Troubadix", "William", "Xepherio", "Yurei", "Znarf"];
+	"Epona", "Escurse", "FanRunner", "Fotari", "Greendragon", "KamiKaze", "KBgamer", "Kimuriel", "Longwave", "Michal",
+	"Michel", "Mike", "Mindtie", "Misa", "Mzklopyu", "Nick", "Nightcore", "Overlord", "Rashiash", "Ray",
+	"Rika", "Robin", "Rutherford", "Ryner", "Samuel", "SeraDenoir", "Shadow", "Somononon", "Stephanie", "Tam",
+	"TopHat", "Trent", "Troubadix", "William", "Xepherio", "Yurei", "Znarf"];
 var LoginThankYouNext = 0;
 var LoginSubmitted = false;
 var LoginIsRelog = false;
@@ -148,8 +148,8 @@ function LoginRun() {
  * @returns {void} Nothing
  */
 function LoginValidCollar() {
- 	if ((InventoryGet(Player, "ItemNeck") != null) && (InventoryGet(Player, "ItemNeck").Asset.Name == "SlaveCollar") && (Player.Owner == "" || LogQuery("ReleasedCollar", "OwnerRule"))) {
- 		InventoryRemove(Player, "ItemNeck");
+	if ((InventoryGet(Player, "ItemNeck") != null) && (InventoryGet(Player, "ItemNeck").Asset.Name == "SlaveCollar") && (Player.Owner == "" || LogQuery("ReleasedCollar", "OwnerRule"))) {
+		InventoryRemove(Player, "ItemNeck");
 		if (CurrentScreen == "ChatRoom") {
 			ChatRoomCharacterItemUpdate(Player, "ItemNeck");
 			ChatRoomCharacterItemUpdate(Player, "ItemNeckAccessories");
@@ -635,7 +635,7 @@ function LoginDoLogin() {
 		var Password = ElementValue("InputPassword");
 		var letters = /^[a-zA-Z0-9]+$/;
 		if (Name.match(letters) && Password.match(letters) && (Name.length > 0) && (Name.length <= 20) && (Password.length > 0) && (Password.length <= 20)) {
-		    LoginSetSubmitted();
+			LoginSetSubmitted();
 			ServerSend("AccountLogin", { AccountName: Name, Password: Password });
 		} else LoginStatusReset("InvalidNamePassword");
 	}
