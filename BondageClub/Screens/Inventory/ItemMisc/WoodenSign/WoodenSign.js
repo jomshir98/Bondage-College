@@ -27,7 +27,7 @@ function InventoryItemMiscWoodenSignLoad() {
 	const input2 = ElementCreateInput("WoodenSignText2", "text", DialogFocusItem.Property.Text2, "12");
 	if (input1) input1.pattern = DynamicDrawTextInputPattern;
 	if (input2) input2.pattern = DynamicDrawTextInputPattern;
-}
+}}
 
 // Draw the extension screen
 function InventoryItemMiscWoodenSignDraw() {
