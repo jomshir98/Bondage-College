@@ -304,7 +304,7 @@ function CommonDrawAppearanceBuild(C, {
 						"Assets/" + AG.Family + "/" + GroupName + "/" + Pose + Expression + A.Name + G + LayerType + ColorName + L + ".png",
 						X, Y,
 						AlphaMasks, Opacity, Rotate
-					);
+					);;
 					drawImageBlink(
 						"Assets/" + AG.Family + "/" + GroupName + "/" + Pose + BlinkExpression + A.Name + G + LayerType + ColorName + L +
 						".png",
