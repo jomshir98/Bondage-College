@@ -12,6 +12,14 @@ var AsylumEntranceEscapedPatientWillJoin = false;
  */
 function AsylumEntranceCanWander() { return (Player.CanWalk() && ((LogValue("Committed", "Asylum") >= CurrentTime) || ((ReputationGet("Asylum") >= 1) && AsylumEntranceIsWearingNurseClothes(Player)))) }
 /**
+ * Checks, if the player is able to enter asylum chatrooms
+ * Requiers player to be either patient or nurse and is wearing clothes (doesn't have to be commited patient)
+ * @returns {boolean} - Returns true, if the player is able to leave, false otherwise
+ */
+function AsylumEntranceCanAccessChatrooms() {
+	return AsylumEntranceCanWander() || Player.CanWalk() && ReputationGet("Asylum") != 0 && (AsylumEntranceIsWearingNurseClothes() || AsylumEntranceIsWearingPatientClothes());
+}
+/**
  * Checks, if the player can bring the nurse to her private room
  * @returns {boolean} - Returns true, if the player can drag the nurse to her private roo, false otherwise
  */
@@ -50,7 +58,7 @@ function AsylumEntranceRun() {
 	DrawCharacter(AsylumEntranceNurse, 1000, 0, 1);
 	if (Player.CanWalk() && (LogValue("Committed", "Asylum") < CurrentTime)) DrawButton(1885, 25, 90, 90, "", "White", "Icons/Exit.png", TextGet("Exit"));
 	DrawButton(1885, 145, 90, 90, "", "White", "Icons/Character.png", TextGet("Profile"));
-	if (AsylumEntranceCanWander()) DrawButton(1885, 265, 90, 90, "", "White", "Icons/Chat.png", TextGet("ChatRoom"));
+	if (AsylumEntranceCanAccessChatrooms()) DrawButton(1885, 265, 90, 90, "", "White", "Icons/Chat.png", TextGet("ChatRoom"));
 	if (AsylumEntranceCanWander()) DrawButton(1885, 385, 90, 90, "", "White", "Icons/Bedroom.png", TextGet("Bedroom"));
 	if (AsylumEntranceCanWander()) DrawButton(1885, 505, 90, 90, "", "White", "Icons/FriendList.png", TextGet("Meeting"));
 	if (AsylumEntranceCanWander()) DrawButton(1885, 625, 90, 90, "", "White", "Icons/Therapy.png", TextGet("Therapy"));
@@ -75,7 +83,7 @@ function AsylumEntranceClick() {
 	}
 	if (MouseIn(1885, 25, 90, 90) && Player.CanWalk() && (LogValue("Committed", "Asylum") < CurrentTime)) CommonSetScreen("Room", "MainHall");
 	if (MouseIn(1885, 145, 90, 90)) InformationSheetLoadCharacter(Player);
-	if (MouseIn(1885, 265, 90, 90) && AsylumEntranceCanWander()) AsylumEntranceStartChat();
+	if (MouseIn(1885, 265, 90, 90) && AsylumEntranceCanAccessChatrooms()) AsylumEntranceStartChat();
 	if (MouseIn(1885, 385, 90, 90) && AsylumEntranceCanWander()) CommonSetScreen("Room", "AsylumBedroom");
 	if (MouseIn(1885, 505, 90, 90) && AsylumEntranceCanWander()) CommonSetScreen("Room", "AsylumMeeting");
 	if (MouseIn(1885, 625, 90, 90) && AsylumEntranceCanWander()) CommonSetScreen("Room", "AsylumTherapy");
