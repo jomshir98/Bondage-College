@@ -463,6 +463,10 @@ function DialogLeave() {
 	DialogSelfMenuSelected = null;
 	DialogFacialExpressionsSelected = -1;
 	ClearButtons();
+	// Required to restore chat visibility
+	if (CurrentScreen == "ChatRoom") {
+		ChatRoomResize(false);
+	}
 }
 
 /**
