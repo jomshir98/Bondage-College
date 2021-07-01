@@ -279,7 +279,7 @@ interface Asset {
 	DynamicExpressionTrigger: (C: Character) => ExpressionTrigger[];
 	DynamicName: (C?: Character) => string;
 	DynamicGroupName: string;
-	DynamicActivity: () => string[] | string | undefined;
+	DynamicActivity: (C: Character) => string[] | string | undefined;
 	DynamicAudio: ((C: Character) => string) | null;
 	CharacterRestricted: boolean;
 	AllowRemoveExclusive: boolean;
@@ -510,7 +510,7 @@ interface Character {
 		OrgasmTimer?: number;
 		OrgasmStage?: number;
 		OrgasmCount?: number;
-        DisableAdvancedVibes: boolean;
+		DisableAdvancedVibes: boolean;
 	};
 	AppearanceFull?: Item[];
 	Trait?: any[];
@@ -546,10 +546,10 @@ interface Character {
 
 interface PlayerCharacter extends Character {
 	ChatSettings?: {
-	    ColorTheme: string;
-	    EnterLeave: string;
-	    MemberNumbers: string;
-	    FontSize: string;
+		ColorTheme: string;
+		EnterLeave: string;
+		MemberNumbers: string;
+		FontSize: string;
 		DisplayTimestamps: boolean;
 		ColorNames: boolean;
 		ColorActions: boolean;
@@ -607,6 +607,7 @@ interface PlayerCharacter extends Character {
 		ReturnToChatRoomAdmin: boolean;
 		SenseDepMessages: boolean;
 		ChatRoomMuffle: boolean;
+		BlindAdjacent: boolean;
 	};
 	LastChatRoom?: string;
 	LastChatRoomBG?: string;
@@ -714,7 +715,7 @@ interface ExtendedItemOption {
 	/** The required self-bondage skill level for this option when using it on oneself */
 	SelfBondageLevel?: number;
 	/** The required prerequisites that must be met before this option can be selected */
-	Prerequisite?: string|string[];
+	Prerequisite?: string | string[];
 	/**
 	 * Whether or not prerequisites should be considered on the character's
 	 * appearance without the item equipped. Should be set to `true` if the item itself might interfere with prerequisites on
@@ -786,7 +787,7 @@ interface ModularItemOption {
 	/** The required self-bondage skill level for this option when using it on oneself */
 	SelfBondageLevel?: number;
 	/** The required prerequisites that must be met before this option can be selected */
-	Prerequisite?: string|string[];
+	Prerequisite?: string | string[];
 	/**
 	 * Whether or not prerequisites should be considered on the character's
 	 * appearance without the item equipped. Should be set to `true` if the item itself might interfere with prerequisites on
@@ -913,7 +914,7 @@ interface TypedItemDialogConfig {
 	 * will include the name of the new option, and depending on the chat setting, the name of the previous option:
 	 * - For chat setting `FROM_TO`: `<chatPrefix><oldOptionName>To<newOptionName>`
 	 * - For chat setting `TO_ONLY`: `<chatPrefix><newOptionName>`
-     * Defaults to `"<GroupName><AssetName>Set"`
+	 * Defaults to `"<GroupName><AssetName>Set"`
 	 */
 	ChatPrefix?: string | TypedItemChatCallback;
 	/**
@@ -982,7 +983,13 @@ interface TypedItemData {
  * @returns {string} - The chat prefix that should be used for this type change
  */
 type TypedItemChatCallback = (
-    chatData: {C: Character; previousOption: ExtendedItemOption; newOption: ExtendedItemOption; previousIndex: number; newIndex: number;},
+	chatData: {
+		C: Character;
+		previousOption: ExtendedItemOption;
+		newOption: ExtendedItemOption;
+		previousIndex: number;
+		newIndex: number;
+	}
 ) => string;
 
 /**
@@ -990,10 +997,12 @@ type TypedItemChatCallback = (
  * @param {ExtendedItemOption} Option - The newly selected type option
  * @returns {string} - Returns a non-empty message string if the item failed validation, or an empty string otherwise
  */
-type TypedItemValidateCallback = (C: Character,
-                                  Item: Item,
-                                  Option: ExtendedItemOption,
-                                  CurrentOption?: ExtendedItemOption) => string;
+type TypedItemValidateCallback = (
+	C: Character,
+	Item: Item,
+	Option: ExtendedItemOption,
+	CurrentOption?: ExtendedItemOption
+) => string;
 
 /**
  * A parameter object containing information used to validate and sanitize character appearance update diffs. An
@@ -1003,23 +1012,23 @@ type TypedItemValidateCallback = (C: Character,
  * not they have been whitelisted by the target).
  */
 interface AppearanceUpdateParameters {
-    /** The character whose appearance is being updated */
-    C: Character;
-    /** Whether or not the source player is the same as the target player */
-    fromSelf: boolean;
-    /**
-     * Whether or not the source player has permissions to use owner-only items (i.e. they are either the target
-     * themselves, or the target's owner)
-     */
-    fromOwner: boolean;
-    /**
-     * Whether or not the source player has permissions to use lover-only items (i.e. they are the target themselves,
-     * one of the target's lovers, or the target's owner, provided the target's lover rules permit their owner using
-     * lover-only items)
-     */
-    fromLover: boolean;
-    /** The member number of the source player */
-    sourceMemberNumber: number;
+	/** The character whose appearance is being updated */
+	C: Character;
+	/** Whether or not the source player is the same as the target player */
+	fromSelf: boolean;
+	/**
+	 * Whether or not the source player has permissions to use owner-only items (i.e. they are either the target
+	 * themselves, or the target's owner)
+	 */
+	fromOwner: boolean;
+	/**
+	 * Whether or not the source player has permissions to use lover-only items (i.e. they are the target themselves,
+	 * one of the target's lovers, or the target's owner, provided the target's lover rules permit their owner using
+	 * lover-only items)
+	 */
+	fromLover: boolean;
+	/** The member number of the source player */
+	sourceMemberNumber: number;
 }
 
 /**
@@ -1028,18 +1037,18 @@ interface AppearanceUpdateParameters {
  * indicates whether or not the diff was fully valid or not.
  */
 interface ItemDiffResolution {
-    /**
-     * The resulting item after resolution of the item diff, or null if the diff resulted in no item being equipped in
-     * the given group
-     */
-    item: Item | null;
-    /**
-     * Whether or not the diff was fully valid. In most cases, an invalid diff will result in the whole appearance
-     * update being rolled back, but in some cases the change will be accepted, but some properties may be modified to
-     * keep the resulting item valid - in both situations, the valid flag will be returned as false, indicating that a
-     * remedial appearance update should be made by the target player.
-     */
-    valid: boolean;
+	/**
+	 * The resulting item after resolution of the item diff, or null if the diff resulted in no item being equipped in
+	 * the given group
+	 */
+	item: Item | null;
+	/**
+	 * Whether or not the diff was fully valid. In most cases, an invalid diff will result in the whole appearance
+	 * update being rolled back, but in some cases the change will be accepted, but some properties may be modified to
+	 * keep the resulting item valid - in both situations, the valid flag will be returned as false, indicating that a
+	 * remedial appearance update should be made by the target player.
+	 */
+	valid: boolean;
 }
 
 /**
@@ -1047,13 +1056,13 @@ interface ItemDiffResolution {
  * valid flag which indicates whether or not the appearance was fully valid or not.
  */
 interface AppearanceValidationWrapper {
-    /** The resulting appearance after validation */
-    appearance: Item[];
-    /**
-     * Whether or not the appearance was valid. A value of false indicates that the appearance has been modified, and a
-     * remedial appearance update should be made by the target player.
-     */
-    valid: boolean;
+	/** The resulting appearance after validation */
+	appearance: Item[];
+	/**
+	 * Whether or not the appearance was valid. A value of false indicates that the appearance has been modified, and a
+	 * remedial appearance update should be made by the target player.
+	 */
+	valid: boolean;
 }
 
 //#endregion
