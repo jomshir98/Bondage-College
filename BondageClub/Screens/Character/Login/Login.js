@@ -403,10 +403,8 @@ function LoginResponse(C) {
 			LoginUpdateMessage();
 			ElementRemove("InputPassword");
 			Player.OnlineID = C.ID.toString();
-			CurrentModule = RelogData.Module;
-			CurrentScreen = RelogData.Screen;
 			CurrentCharacter = RelogData.Character;
-			TextLoad();
+			CommonSetScreen(RelogData.Module, RelogData.Screen);
 			var Elements = document.getElementsByClassName("HideOnDisconnect");
 			for (let E = 0; E < Elements.length; E++)
 				Elements[E].style.display = "";
